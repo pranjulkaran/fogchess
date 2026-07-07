@@ -8,7 +8,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Enforce strict compiler warnings and SIMD instructions
 if(MSVC)
-    set(COMPILER_FLAGS /W4 /WX /arch:AVX2)
+    list(APPEND COMMON_FLAGS
+        /W4
+        /WX
+        /wd4324
+    )
+endif()
 else()
     set(COMPILER_FLAGS -Wall -Wextra -Werror -O3)
 

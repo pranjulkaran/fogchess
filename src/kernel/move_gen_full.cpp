@@ -41,7 +41,7 @@ uint32_t generate_pseudo_moves_lane(const StateBatch4* batch, int lane, uint32_t
     for (int piece = 1; piece <= 5; ++piece) {
         uint64_t bb = batch->pieces[color][piece][lane];
         while (bb) {
-            int from = fast_ctzll(bb);
+            uint8_t from = static_cast<uint8_t>(fast_ctzll(bb));
             uint64_t attacks = 0ULL;
 
             switch (piece) {
@@ -55,7 +55,7 @@ uint32_t generate_pseudo_moves_lane(const StateBatch4* batch, int lane, uint32_t
             attacks &= ~friendly; // Prevent friendly fire[cite: 3]
 
             while (attacks && count < max_moves) {
-                int to = fast_ctzll(attacks);
+                uint8_t to = static_cast<uint8_t>(fast_ctzll(attacks));
                 uint8_t flag = (enemy & (1ULL << to)) ? MOVE_CAPTURE : MOVE_QUIET; // Verify captures[cite: 3, 4]
                 out_commands[count++] = Command(from, to, piece, flag).get_raw();
                 attacks &= attacks - 1;
@@ -67,7 +67,7 @@ uint32_t generate_pseudo_moves_lane(const StateBatch4* batch, int lane, uint32_t
     // 2. Process Pawns (Highly directional)[cite: 3]
     uint64_t pawns = batch->pieces[color][0][lane];
     while (pawns && count < max_moves) {
-        int from = fast_ctzll(pawns);
+        uint8_t from = static_cast<uint8_t>(fast_ctzll(pawns));
         uint64_t moves = 0ULL;
 
         if (color == 0) { // White Pawns[cite: 3]
@@ -87,7 +87,7 @@ uint32_t generate_pseudo_moves_lane(const StateBatch4* batch, int lane, uint32_t
         }
 
         while (moves && count < max_moves) {
-            int to = fast_ctzll(moves);
+            uint8_t to = static_cast<uint8_t>(fast_ctzll(moves));
             uint8_t flag = (enemy & (1ULL << to)) ? MOVE_CAPTURE : MOVE_QUIET;
 
             // Promotion Forks[cite: 3, 4]
