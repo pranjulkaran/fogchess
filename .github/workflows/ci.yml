@@ -1,69 +1,58 @@
-name: FogEngine CI Matrix
+name: FogEngine CI
 
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [main, dev]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-test:
-    name: Build & Test (${{ matrix.os }}, ${{ matrix.compiler }})
+    name: ${{ matrix.os }} - ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            compiler: msvc
-            cxx: cl
           - os: ubuntu-latest
             compiler: gcc
             cxx: g++-12
+
           - os: ubuntu-latest
             compiler: clang
             cxx: clang++
-          - os: macos-latest
-            compiler: apple-clang
-            cxx: clang++
 
-    env:
-      CXX: ${{ matrix.cxx }}
-      BUILD_TYPE: Release
+          - os: windows-latest
+            compiler: msvc
+            cxx: cl
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup CMake
-        uses: lukka/get-cmake@latest
+      - name: Setup MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Setup Linux Dependencies
+      - name: Install Linux Dependencies
         if: runner.os == 'Linux'
+        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             sudo apt-get install -y g++-12
-          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+          else
             sudo apt-get install -y clang
           fi
 
-      - name: Configure CMake
-        run: |
-          cmake -B build \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_CXX_COMPILER=${{ env.CXX }}
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
 
       - name: Build
-        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+        run: cmake --build build --parallel
 
-      - name: Run Tests
+      - name: Test
         working-directory: build
-        run: ctest --output-on-failure --parallel 4
+        run: ctest --output-on-failure

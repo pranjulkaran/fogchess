@@ -8,9 +8,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Enforce strict compiler warnings and SIMD instructions
 if(MSVC)
-    set(COMPILER_FLAGS "/W4" "/WX" "/arch:AVX2")
+    set(COMPILER_FLAGS /W4 /WX /arch:AVX2)
 else()
-    set(COMPILER_FLAGS "-Wall" "-Wextra" "-Werror" "-mavx2" "-O3")
+    set(COMPILER_FLAGS -Wall -Wextra -Werror -O3)
+
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+        list(APPEND COMPILER_FLAGS -mavx2)
+    endif()
 endif()
 
 # Include directories
