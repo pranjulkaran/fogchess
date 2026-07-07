@@ -17,6 +17,10 @@ _lib = ctypes.CDLL(lib_path)
 _lib.fog_engine_init.argtypes = [ctypes.c_uint32]
 _lib.fog_engine_init.restype = ctypes.c_void_p
 _lib.fog_engine_shutdown.argtypes = [ctypes.c_void_p]
+
+_lib.fog_batch_step.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
+_lib.fog_batch_step.restype = ctypes.c_int32
+
 _lib.fog_batch_reset.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_uint32), ctypes.c_uint32]
 _lib.fog_get_moves.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
 _lib.fog_get_layer3_tensor.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint64, ctypes.POINTER(ctypes.c_int32), ctypes.c_int32, ctypes.POINTER(ctypes.c_int32), ctypes.c_int32, ctypes.c_int32, ctypes.POINTER(ctypes.c_float)]
@@ -35,6 +39,15 @@ class FogEngine:
         count = len(batch_indices)
         c_indices = (ctypes.c_uint32 * count)(*batch_indices)
         _lib.fog_batch_reset(self._handle, c_indices, count)
+
+    # --- THE MISSING METHOD ---
+    def step_batches(self, batch_indices: list[int], commands: list[int]):
+        count = len(commands)
+        c_indices = (ctypes.c_uint32 * len(batch_indices))(*batch_indices)
+        c_commands = (ctypes.c_uint32 * count)(*commands)
+        res = _lib.fog_batch_step(self._handle, c_indices, c_commands, count)
+        if res != 0:
+            raise RuntimeError(f"Engine failed to step batches. Code: {res}")
 
     def get_legal_moves(self, batch_index: int, lane: int) -> list[int]:
         c_commands = (ctypes.c_uint32 * 256)() 
