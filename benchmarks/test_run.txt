@@ -1,0 +1,7 @@
+[Benchmark] Booting engine with 10000 parallel environments...
+[Benchmark] Executing 1000 batched steps...
+------------------------------------------------
+Total Environment Steps: 1e+07
+Time Elapsed:            130.027 seconds
+SIMD Kernel Throughput:  76906.9 SPS (Steps Per Second)
+------------------------------------------------

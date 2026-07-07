@@ -28,6 +28,24 @@ int32_t fog_get_moves(FogEngineHandle engine, uint32_t batch_index, uint32_t lan
 // [NEW] Returns a bitmask representing which lanes in a batch hit terminal conditions (King captured)
 int32_t fog_check_terminations(FogEngineHandle engine, uint32_t batch_index, uint32_t* out_mask);
 
+// [NEW] Exports the exact 1:1 Layer 3 observation tensor [14 x 8 x 8] for a specific SIMD lane
+// out_buffer must point to a pre-allocated flat float array of size 896
+int32_t fog_get_layer3_tensor(FogEngineHandle engine, 
+                              uint32_t batch_index, 
+                              uint32_t lane,
+                              uint64_t visible_mask, 
+                              const int32_t* scouted_sqs, int32_t scouted_count,
+                              const int32_t* ghost_sqs, int32_t ghost_count,
+                              int32_t is_scout_phase,
+                              float* out_buffer);
+
+// [NEW] Exports the True State Matrix (8x8 dense representation) for a specific SIMD lane
+// out_buffer must point to a pre-allocated flat int8_t array of size 64
+int32_t fog_get_true_state_matrix(FogEngineHandle engine, 
+                                  uint32_t batch_index, 
+                                  uint32_t lane, 
+                                  int8_t* out_buffer);
+
 #ifdef __cplusplus
 }
 #endif
