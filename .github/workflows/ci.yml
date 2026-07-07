@@ -1,0 +1,76 @@
+name: Fogchess CI Matrix
+
+on:
+push:
+branches: [ "main", "dev" ]
+pull_request:
+branches: [ "main" ]
+
+jobs:
+build-and-test:
+name: Build & Test (${{ matrix.os }}, ${{ matrix.compiler }})
+runs-on: ${{ matrix.os }}
+
+strategy:
+  fail-fast: false # Let all platforms finish even if one fails
+  matrix:
+    include:
+      # Windows MSVC Build
+      - os: windows-latest
+        compiler: msvc
+        cxx: cl
+        
+      # Linux GCC Build (Ubuntu)
+      - os: ubuntu-latest
+        compiler: gcc
+        cxx: g++
+        
+      # Linux Clang Build (Ubuntu)
+      - os: ubuntu-latest
+        compiler: clang
+        cxx: clang++
+        
+      # macOS Apple Clang Build
+      - os: macos-latest
+        compiler: apple-clang
+        cxx: clang++
+
+env:
+  CXX: ${{ matrix.cxx }}
+  BUILD_TYPE: Release
+
+steps:
+- name: Checkout Repository
+  uses: actions/checkout@v4
+
+- name: Setup Ninja Build System
+  uses: lukka/get-cmake@latest
+  
+# Setup specific compilers on Ubuntu
+- name: Setup Linux Compilers
+  if: runner.os == 'Linux'
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y ninja-build
+    if [ "${{ matrix.compiler }}" = "gcc" ]; then
+      sudo apt-get install -y g++-12
+      echo "CXX=g++-12" >> $GITHUB_ENV
+    elif [ "${{ matrix.compiler }}" = "clang" ]; then
+      sudo apt-get install -y clang
+    fi
+
+- name: Configure CMake
+  run: >
+    cmake -B build
+    -G Ninja
+    -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+    -DCMAKE_CXX_COMPILER=${{ env.CXX }}
+
+- name: Build Engine (Strict Compilation)
+  # If there is a single warning, this step will fail (due to /WX or -Werror in CMake)
+  run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+- name: Run Determinism & Unit Tests
+  working-directory: build
+  # Run tests with output printed on failure
+  run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure --parallel 4
