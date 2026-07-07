@@ -6,20 +6,21 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enforce strict compiler warnings and SIMD instructions
-if(MSVC)
-    list(APPEND COMMON_FLAGS
-        /W4
-        /WX
-        /wd4324
-    )
-endif()
-else()
-    set(COMPILER_FLAGS -Wall -Wextra -Werror -O3)
+# Compiler warnings and optimizations (Linux only)
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
-        list(APPEND COMPILER_FLAGS -mavx2)
-    endif()
+set(COMPILER_FLAGS
+    -Wall
+    -Wextra
+    -Werror
+    -O3
+)
+
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag("-mavx2" HAS_AVX2)
+
+if(HAS_AVX2)
+    list(APPEND COMPILER_FLAGS -mavx2)
 endif()
 
 # Include directories
