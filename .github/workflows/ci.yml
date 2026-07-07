@@ -1,63 +1,69 @@
 name: FogEngine CI Matrix
 
 on:
-push:
-branches: [ "main", "dev" ]
-pull_request:
-branches: [ "main" ]
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
 
 jobs:
-build-and-test:
-name: Build & Test (${{ matrix.os }}, ${{ matrix.compiler }})
-runs-on: ${{ matrix.os }}
+  build-and-test:
+    name: Build & Test (${{ matrix.os }}, ${{ matrix.compiler }})
+    runs-on: ${{ matrix.os }}
 
-strategy:
-  fail-fast: false
-  matrix:
-    include:
-      - os: windows-latest
-        compiler: msvc
-        cxx: cl
-      - os: ubuntu-latest
-        compiler: gcc
-        cxx: g++
-      - os: ubuntu-latest
-        compiler: clang
-        cxx: clang++
-      - os: macos-latest
-        compiler: apple-clang
-        cxx: clang++
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            compiler: msvc
+            cxx: cl
+          - os: ubuntu-latest
+            compiler: gcc
+            cxx: g++-12
+          - os: ubuntu-latest
+            compiler: clang
+            cxx: clang++
+          - os: macos-latest
+            compiler: apple-clang
+            cxx: clang++
 
-env:
-  CXX: ${{ matrix.cxx }}
-  BUILD_TYPE: Release
+    env:
+      CXX: ${{ matrix.cxx }}
+      BUILD_TYPE: Release
 
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Setup Ninja Build System
-    uses: lukka/get-cmake@latest
-    
-  - name: Setup Linux Compilers
-    if: runner.os == 'Linux'
-    run: |
-      sudo apt-get update
-      sudo apt-get install -y ninja-build
-      if [ "${{ matrix.compiler }}" = "gcc" ]; then
-        sudo apt-get install -y g++-12
-        echo "CXX=g++-12" >> $GITHUB_ENV
-      elif [ "${{ matrix.compiler }}" = "clang" ]; then
-        sudo apt-get install -y clang
-      fi
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
 
-  - name: Configure CMake
-    run: |
-      cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_CXX_COMPILER=${{ env.CXX }} -DCMAKE_TLS_VERIFY=OFF
+      - name: Setup Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
 
-  - name: Build Engine (Strict Compilation)
-    run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            sudo apt-get install -y g++-12
+          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+          fi
 
-  - name: Run Determinism & Unit Tests
-    working-directory: build
-    run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure --parallel 4
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_CXX_COMPILER=${{ env.CXX }}
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure --parallel 4
