@@ -4,46 +4,24 @@
  */
 
 #include <iostream>
-#include <vector>
 #include "fog_sdk.h"
-#include "fog_command.h"
 
 int main() {
     std::cout << "[FogEngine] Booting deterministic runtime..." << std::endl;
-
-    // 1. Initialize the engine with an arena capacity of 1,024 batches (4,096 games)
     FogEngineHandle engine = fog_engine_init(1024);
-    if (!engine) {
-        std::cerr << "[ERROR] Failed to initialize FogEngine." << std::endl;
-        return 1;
-    }
-    std::cout << "[FogEngine] Arena allocated successfully." << std::endl;
-
-    // 2. Prepare a batch of 8 parallel environments to step
-    uint32_t count = 8;
-    std::vector<uint32_t> batch_indices = {0, 0, 0, 0, 1, 1, 1, 1}; // Games targeting batch slot 0 and 1
-    std::vector<uint32_t> commands;
-
-    // Create a mock command: Move a Pawn from e2 (Square 12) to e4 (Square 28)[cite: 3, 4]
-    fog::Command mock_move(12, 28, 0, 0); 
     
-    for (uint32_t i = 0; i < count; ++i) {
-        commands.push_back(mock_move.get_raw());
-    }
+    // 1. Reset batch index 0 (which contains 4 parallel game lanes) to standard start position
+    uint32_t batch_indices[] = {0};
+    fog_batch_reset(engine, batch_indices, 1);
+    std::cout << "[FogEngine] Batch 0 reset to standard chess positions." << std::endl;
 
-    // 3. Execute the batched step through the SDK boundary
-    std::cout << "[FogEngine] Executing batch step for " << count << " environments..." << std::endl;
-    int32_t result = fog_batch_step(engine, batch_indices.data(), commands.data(), count);
+    // 2. Generate moves for Lane 0 of that batch
+    uint32_t out_commands[256];
+    uint32_t out_count = 0;
+    fog_get_moves(engine, 0, 0, out_commands, &out_count);
 
-    if (result == 0) {
-        std::cout << "[SUCCESS] Batch stepped perfectly via SIMD thread pool." << std::endl;
-    } else {
-        std::cerr << "[ERROR] Batch step failed with code: " << result << std::endl;
-    }
+    std::cout << "[SUCCESS] Generated " << out_count << " legal moves for the starting position!" << std::endl;
 
-    // 4. Clean up
     fog_engine_shutdown(engine);
-    std::cout << "[FogEngine] Runtime shut down cleanly." << std::endl;
-
     return 0;
 }

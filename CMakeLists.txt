@@ -19,6 +19,10 @@ include_directories(include src)
 # 1. FogEngine Runtime & Kernel (Static Library)
 add_library(fog_core STATIC
     src/kernel/visibility.cpp
+    src/kernel/tables.cpp        
+    src/kernel/state_init.cpp    
+    src/kernel/threats.cpp       
+    src/kernel/move_gen_full.cpp
     src/kernel/move_gen.cpp
     src/kernel/rules.cpp         
     src/runtime/scheduler.cpp
@@ -43,6 +47,7 @@ add_executable(fog_tests
     tests/test_simd.cpp
     tests/test_determinism.cpp
     tests/test_rules.cpp
+    tests/test_kernel_core.cpp
 )
 target_link_libraries(fog_tests PRIVATE fog_core gtest_main)
 target_compile_options(fog_tests PRIVATE ${COMPILER_FLAGS})

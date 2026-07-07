@@ -14,7 +14,7 @@ namespace fog {
 namespace kernel {
 
 // Pre-computed lookup tables matching pomdp64 structure, now mapped for internal kernel optimization[cite: 4]
-static uint64_t ray_table[8][64]; // Arrays for up, down, left, right, ur, ul, dr, dl
+extern uint64_t ray_table[8][64]; // Arrays for up, down, left, right, ur, ul, dr, dl
 
 /**
  * @brief Scalar ray clipping helper adapted from your pomdp64.cpp[cite: 3].
