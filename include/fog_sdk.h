@@ -41,7 +41,7 @@ void fog_engine_shutdown(FogEngineHandle engine);
  * @param count The number of parallel environments to step.
  * @return int32_t Returns 0 on success, or a negative error code on failure.
  */
-int32_t fog_batch_step(FogEngineHandle engine, const uint32_t* batch_indices, const uint16_t* commands, uint32_t count);
+int32_t fog_batch_step(FogEngineHandle engine, const uint32_t* batch_indices, const uint32_t* commands, uint32_t count);
 
 #ifdef __cplusplus
 }

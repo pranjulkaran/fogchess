@@ -14,7 +14,7 @@ TEST(FogDeterminismTest, TestParallelReplayConsistency) {
 
     // 2. Prepare mock command streams to move e2 to e4 across 4 separate games[cite: 3]
     alignas(32) uint32_t batch_ids[4] = {0, 0, 0, 0}; // All pointing to batch slot 0
-    alignas(32) uint16_t command_stream[4];
+    alignas(32) uint32_t command_stream[4];
 
     // Build 16-bit commands using our packed bit mask system
     fog::Command move_cmd(12, 28, 0, 0); // From e2 (12) to e4 (28), PAWN (0)[cite: 3, 4]

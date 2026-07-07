@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstring>
 #include "fog_state.h"
 #include "../src/kernel/move_gen.cpp"
 

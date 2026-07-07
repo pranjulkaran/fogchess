@@ -22,7 +22,7 @@ int main() {
     // 2. Prepare a batch of 8 parallel environments to step
     uint32_t count = 8;
     std::vector<uint32_t> batch_indices = {0, 0, 0, 0, 1, 1, 1, 1}; // Games targeting batch slot 0 and 1
-    std::vector<uint16_t> commands;
+    std::vector<uint32_t> commands;
 
     // Create a mock command: Move a Pawn from e2 (Square 12) to e4 (Square 28)[cite: 3, 4]
     fog::Command mock_move(12, 28, 0, 0); 
