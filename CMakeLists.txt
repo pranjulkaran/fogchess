@@ -20,6 +20,7 @@ include_directories(include src)
 add_library(fog_core STATIC
     src/kernel/visibility.cpp
     src/kernel/move_gen.cpp
+    src/kernel/rules.cpp         
     src/runtime/scheduler.cpp
     src/sdk/bridge.cpp
 )
@@ -41,6 +42,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(fog_tests 
     tests/test_simd.cpp
     tests/test_determinism.cpp
+    tests/test_rules.cpp
 )
 target_link_libraries(fog_tests PRIVATE fog_core gtest_main)
 target_compile_options(fog_tests PRIVATE ${COMPILER_FLAGS})

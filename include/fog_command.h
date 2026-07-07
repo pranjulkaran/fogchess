@@ -10,29 +10,30 @@
 
 namespace fog {
 
+// Extracted from pomdp64.hpp definitions[cite: 4]
+constexpr uint8_t MOVE_QUIET = 0;
+constexpr uint8_t MOVE_CAPTURE = 1;
+constexpr uint8_t MOVE_DOUBLE_PAWN_PUSH = 2;
+constexpr uint8_t MOVE_EN_PASSANT = 3;
+constexpr uint8_t MOVE_KING_CASTLE = 4;
+constexpr uint8_t MOVE_QUEEN_CASTLE = 5;
+constexpr uint8_t MOVE_PROMOTE_KNIGHT = 6;
+constexpr uint8_t MOVE_PROMOTE_BISHOP = 7;
+constexpr uint8_t MOVE_PROMOTE_ROOK = 8;
+constexpr uint8_t MOVE_PROMOTE_QUEEN = 9;
+
 class Command {
 public:
-    // Default constructor
     Command() : data_(0) {}
-
-    // Construct directly from a raw 32-bit payload (used by the SDK bridge)
     explicit Command(uint32_t raw) : data_(raw) {}
-
-    // Construct from discrete game parameters
     Command(uint8_t from, uint8_t to, uint8_t piece, uint8_t flag) {
-        data_ = (from & 0x3F) |                  // Bits 0-5
-                ((to & 0x3F) << 6) |             // Bits 6-11
-                ((piece & 0x07) << 12) |         // Bits 12-14
-                ((flag & 0x0F) << 15);           // Bits 15-18
+        data_ = (from & 0x3F) | ((to & 0x3F) << 6) | ((piece & 0x07) << 12) | ((flag & 0x0F) << 15);
     }
 
-    // Fast bitwise extractors
     inline uint8_t get_from_square() const { return data_ & 0x3F; }
     inline uint8_t get_to_square() const   { return (data_ >> 6) & 0x3F; }
     inline uint8_t get_piece_type() const  { return (data_ >> 12) & 0x07; }
     inline uint8_t get_flag() const        { return (data_ >> 15) & 0x0F; }
-    
-    // Returns the raw payload to pass through the C-ABI
     inline uint32_t get_raw() const        { return data_; }
 
 private:
