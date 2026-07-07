@@ -15,19 +15,15 @@ strategy:
   fail-fast: false
   matrix:
     include:
-      # Windows MSVC Build
       - os: windows-latest
         compiler: msvc
         cxx: cl
-      # Linux GCC Build (Ubuntu)
       - os: ubuntu-latest
         compiler: gcc
         cxx: g++
-      # Linux Clang Build (Ubuntu)
       - os: ubuntu-latest
         compiler: clang
         cxx: clang++
-      # macOS Apple Clang Build
       - os: macos-latest
         compiler: apple-clang
         cxx: clang++
@@ -43,7 +39,6 @@ steps:
   - name: Setup Ninja Build System
     uses: lukka/get-cmake@latest
     
-  # Setup specific compilers on Ubuntu
   - name: Setup Linux Compilers
     if: runner.os == 'Linux'
     run: |
@@ -57,12 +52,8 @@ steps:
       fi
 
   - name: Configure CMake
-    run: >
-      cmake -B build
-      -G Ninja
-      -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-      -DCMAKE_CXX_COMPILER=${{ env.CXX }}
-      -DCMAKE_TLS_VERIFY=OFF
+    run: |
+      cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_CXX_COMPILER=${{ env.CXX }} -DCMAKE_TLS_VERIFY=OFF
 
   - name: Build Engine (Strict Compilation)
     run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
