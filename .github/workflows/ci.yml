@@ -1,4 +1,4 @@
-name: FogEngine CI Matrix
+name: FogEngine CI
 
 on:
   push:
@@ -11,38 +11,44 @@ on:
 
 jobs:
   build-and-test:
-    name: Build & Test (${{ matrix.os }}, ${{ matrix.compiler }})
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-            compiler: msvc
-            cxx: cl
           - os: ubuntu-latest
             compiler: gcc
             cxx: g++-12
+
           - os: ubuntu-latest
             compiler: clang
             cxx: clang++
+
+          - os: windows-latest
+            compiler: msvc
+            cxx: cl
+
           - os: macos-latest
             compiler: apple-clang
             cxx: clang++
 
     env:
-      CXX: ${{ matrix.cxx }}
       BUILD_TYPE: Release
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup CMake
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@v3
 
-      - name: Setup Linux Dependencies
+      - name: Setup MSVC
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
@@ -50,16 +56,17 @@ jobs:
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
             sudo apt-get install -y g++-12
-          elif [ "${{ matrix.compiler }}" = "clang" ]; then
+          else
             sudo apt-get install -y clang
           fi
+        shell: bash
 
-      - name: Configure CMake
-        run: |
-          cmake -B build \
-            -G Ninja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_CXX_COMPILER=${{ env.CXX }}
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
 
       - name: Build
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
