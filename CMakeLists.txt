@@ -17,12 +17,13 @@ endif()
 include_directories(include src)
 
 # 1. FogEngine Runtime & Kernel (Static Library)
-add_library(fog_core STATIC
-    src/kernel/visibility.cpp
-    src/kernel/tables.cpp        
-    src/kernel/state_init.cpp    
-    src/kernel/threats.cpp       
+# Must be SHARED for ctypes to load the file
+add_library(fog_core SHARED 
+    src/kernel/tables.cpp
+    src/kernel/state_init.cpp
+    src/kernel/threats.cpp
     src/kernel/move_gen_full.cpp
+    src/kernel/visibility.cpp
     src/kernel/move_gen.cpp
     src/kernel/rules.cpp         
     src/runtime/scheduler.cpp
